@@ -9,6 +9,7 @@ import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ScanRequest;
 import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import com.dailycodebuffer.entity.Meeting;
 import com.dailycodebuffer.entity.User;
 
 import java.util.ArrayList;
@@ -54,6 +55,10 @@ public class UserRepository {
 		return (List<User>) dynamoDBMapper.load(User.class, status);
 	}
 	
-	
-
+   //  save meeting details
+    public Meeting save(Meeting meeting) {
+        dynamoDBMapper.save(meeting);
+        return meeting;
+    }
+    
 }

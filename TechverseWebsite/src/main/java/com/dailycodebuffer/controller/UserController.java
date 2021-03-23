@@ -6,6 +6,8 @@ import javax.mail.internet.MimeMessage;
 
 import org.apache.catalina.startup.ClassLoaderFactory.Repository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
@@ -18,8 +20,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import com.dailycodebuffer.entity.User;
+
+import com.dailycodebuffer.entity.Meeting;
 import com.dailycodebuffer.repository.UserRepository;
 
 
@@ -35,8 +40,14 @@ public class UserController  {
 	@Autowired
 	private JavaMailSender mailSenderObj;
 	
-	@CrossOrigin(origins = "http://localhost:4200")
+	@GetMapping("/index")
+	public String index(){
+		
+		return 	"welcome";	
+	}
+	
 
+	
     @PostMapping("/createuser")
     public User saveEmployee(@RequestBody User user) {
     	 user.setStatus("1");
@@ -98,4 +109,56 @@ public class UserController  {
     public String updateEmployee(@PathVariable("id") String userId, @RequestBody User user) {
         return userRepository.update(userId,user);
     }
-}
+    
+    //sent mail for meeting and save data
+    @RequestMapping(value="/customer/save", method ={RequestMethod.POST,RequestMethod.GET})
+    public ResponseEntity<String> saveMeetingandsendEmail(@RequestBody Meeting meeting) {
+    	System.out.println("enter controller");
+    	userRepository.save(meeting);
+         sendmailformeeting(meeting,meeting.getEmail());
+        // return "User Profile entry  deleted with number : ", HttpStatus.OK;
+         return new ResponseEntity<String>("Meeting details saved..",HttpStatus.OK);
+	}
+        // return new ResponseEntity<Meeting>("Your number is Verified",HttpStatus.OK);
+    
+    
+    private void sendmailformeeting(Meeting meeting, String email) {
+		// TODO Auto-generated method stub
+    	final String emailToRecipient = MAIL_RECEPTENT;
+    	final String emailFromRecipient = email;
+		final String emailSubject = "Meeting Schedule Notification ";
+
+		final String emailMessage1 = "<html> <body> <p>Dear Sir/Madam,</p><p>Meeting has been schedule by client as per below details"
+				+ "<br><br>"
+				//+ "<table border='1' width='300px' style='text-align:center;font-size:20px;'><tr> <td colspan='2'>"
+				+ "<tr><td>Name</td><td>" + meeting.getFullname() + "</td></tr><tr><td>Email</td><td>"
+				+ meeting.getEmail() + "</td></tr><tr><td>Message</td><td>" + meeting.getDateandtime() + "</td></tr><tr><td>Message</td><td>" 
+				+ meeting.getTitle()
+				+ "</td></tr> </body></html>";
+		
+		mailSenderObj.send(new MimeMessagePreparator() {
+
+			@Override
+			public void prepare(MimeMessage mimeMessage) throws Exception {
+
+				MimeMessageHelper mimeMsgHelperObj = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+
+				mimeMsgHelperObj.setTo(emailToRecipient);
+				mimeMsgHelperObj.setFrom("test@gmail.com");
+	
+				mimeMsgHelperObj.setText(emailMessage1, true);
+
+				mimeMsgHelperObj.setSubject(emailSubject);
+
+			}
+		});
+		
+	}
+    	
+    	
+    	
+    	
+		
+	}
+
+
