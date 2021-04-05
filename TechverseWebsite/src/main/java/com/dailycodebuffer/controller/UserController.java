@@ -5,6 +5,8 @@ import java.util.List;
 import javax.mail.internet.MimeMessage;
 
 import org.apache.catalina.startup.ClassLoaderFactory.Repository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,19 +21,26 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.dailycodebuffer.entity.User;
 
+import com.dailycodebuffer.DynanoDbSpringBootDemoApplication;
 import com.dailycodebuffer.entity.Meeting;
 import com.dailycodebuffer.repository.UserRepository;
 
 
 @RestController
+@RequestMapping("/techversewebsite")
 
 
 public class UserController  {
+	
+	private static final Logger LOGGER= LoggerFactory.getLogger(DynanoDbSpringBootDemoApplication.class);
+	
 
     private static final String MAIL_RECEPTENT = "pediredlanagarevathi@gmail.com";
 	
@@ -41,9 +50,11 @@ public class UserController  {
 	private JavaMailSender mailSenderObj;
 	
 	@GetMapping("/index")
-	public String index(){
-		
-		return 	"welcome";	
+	public ResponseEntity<String> index(){
+		LOGGER.info("UserController - index() :: Start");
+		String message = "Welcome to Broker API...!";
+		LOGGER.info("UserController - index() :: End");
+		return ResponseEntity.ok().body(message);		
 	}
 	
 
