@@ -32,6 +32,8 @@ import com.dailycodebuffer.DynanoDbSpringBootDemoApplication;
 import com.dailycodebuffer.entity.Meeting;
 import com.dailycodebuffer.repository.UserRepository;
 
+import Spring.Twilio.Service.VerificationResult;
+
 
 @RestController
 @RequestMapping("/techversewebsite")
@@ -166,7 +168,31 @@ public class UserController  {
 		
 	}
     	
-    	
+    @PostMapping("/sendotp")
+	public ResponseEntity<String> sendotp(@RequestParam("phone") String phone)
+	{
+	    VerificationResult result=phonesmsservice.startVerification(phone);
+	    if(result.isValid())
+	    {
+	    	return new ResponseEntity<>("Otp Sent..",HttpStatus.OK);
+	    }
+		return new ResponseEntity<>("Otp sent..",HttpStatus.BAD_REQUEST);
+	}
+	
+	@PostMapping("/verifyotp")
+	public ResponseEntity<String> sendotp(@RequestParam("phone") String phone, @RequestParam("otp") String otp)
+	{
+	    VerificationResult result=phonesmsservice.checkverification(phone,otp);
+	    if(result.isValid())
+	    {
+	    	
+	    	return new ResponseEntity<>("Your number is Verified",HttpStatus.OK);
+	    }
+		return new ResponseEntity<>("Something wrong/ Otp incorrect",HttpStatus.BAD_REQUEST);
+	}
+	
+	
+	
     	
     	
 		
