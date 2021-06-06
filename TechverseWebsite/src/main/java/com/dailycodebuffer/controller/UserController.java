@@ -1,55 +1,47 @@
 package com.dailycodebuffer.controller;
 
+import java.util.Date;
 import java.util.List;
 
-import javax.mail.internet.MimeMessage;
-
-import org.apache.catalina.startup.ClassLoaderFactory.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.mail.javamail.MimeMessagePreparator;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import com.dailycodebuffer.entity.User;
-
-import com.dailycodebuffer.DynanoDbSpringBootDemoApplication;
 import com.dailycodebuffer.entity.Meeting;
-import com.dailycodebuffer.repository.UserRepository;
-
-import Spring.Twilio.Service.VerificationResult;
+import com.dailycodebuffer.entity.Phone;
+import com.dailycodebuffer.entity.Sms;
+import com.dailycodebuffer.entity.User;
+import com.dailycodebuffer.service.SmsSenderService;
+import com.dailycodebuffer.service.UserService;
+import com.dailycodebuffer.util.StringConstants;
 
 
 @RestController
 @RequestMapping("/techversewebsite")
-
-
 public class UserController  {
 	
-	private static final Logger LOGGER= LoggerFactory.getLogger(DynanoDbSpringBootDemoApplication.class);
+	private static final Logger LOGGER= LoggerFactory.getLogger(UserController.class);
 	
-
-    private static final String MAIL_RECEPTENT = "pediredlanagarevathi@gmail.com";
+	// y mail prop ?
+    
+    @Autowired
+    private SmsSenderService smsSenderService;
 	
 	@Autowired
-    private UserRepository userRepository;
-	@Autowired
-	private JavaMailSender mailSenderObj;
+	private UserService userService;
+  
 	
 	@GetMapping("/index")
 	public ResponseEntity<String> index(){
@@ -63,139 +55,89 @@ public class UserController  {
 	
     @PostMapping("/createuser")
     public User saveEmployee(@RequestBody User user) {
-    	 user.setStatus("1");
-         userRepository.save(user);
-         sendmail(user,user.getEmailId());
-         return user;
+    	 User userEmployee = userService.saveEmployee(user);
+         return userEmployee;
     }
 
-    private void sendmail(User user, String userEmailId) {
-		// TODO Auto-generated method stub
-    	
-    	final String emailToRecipient = MAIL_RECEPTENT;
-    	final String emailFromRecipient = userEmailId;
-		final String emailSubject = "Enquiry Done ";
-
-		final String emailMessage1 = "<html> <body> <p>Dear Sir/Madam,</p><p>You have succesfully Registered with our Services"
-				+ "<br><br>"
-				//+ "<table border='1' width='300px' style='text-align:center;font-size:20px;'><tr> <td colspan='2'>"
-				+ "<tr><td>Name</td><td>" + user.getName() + "</td></tr><tr><td>Email</td><td>"
-				+ user.getEmailId() + "</td></tr><tr><td>Message</td><td>" + user.getMessage()
-				+ "</td></tr> </body></html>";
-
-		mailSenderObj.send(new MimeMessagePreparator() {
-
-			@Override
-			public void prepare(MimeMessage mimeMessage) throws Exception {
-
-				MimeMessageHelper mimeMsgHelperObj = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-
-				mimeMsgHelperObj.setTo(emailToRecipient);
-				mimeMsgHelperObj.setFrom("test@gmail.com");
-	
-				mimeMsgHelperObj.setText(emailMessage1, true);
-
-				mimeMsgHelperObj.setSubject(emailSubject);
-
-			}
-		});
-		
-	}
-
+    
 	@GetMapping("/user/{id}")
     public User getEmployeeById(@PathVariable("id") String userId) {
-		return userRepository.getUserById(userId);
+		return userService.getUserById(userId);
     }
 	
 	@GetMapping("/user/{status}")
-	public List<User> getBooks(@PathVariable("status") String status) {
-		return (List<User>) userRepository.findAll(status);
+	public List<User> getUserStatus(@PathVariable("status") String status) {		
+		return (List<User>) userService.getUserStatus(status);
 	}
 
 
     @DeleteMapping("/user/{id}")
     public String deleteEmployee(@PathVariable("id") String userId) {
-        return  userRepository.delete(userId);
+        return  userService.deleteEmployee(userId);
     }
 
     @PutMapping("/user/{id}")
     public String updateEmployee(@PathVariable("id") String userId, @RequestBody User user) {
-        return userRepository.update(userId,user);
+        return userService.updateEmployee(userId,user);
     }
     
     //sent mail for meeting and save data
     @RequestMapping(value="/customer/save", method ={RequestMethod.POST,RequestMethod.GET})
     public ResponseEntity<String> saveMeetingandsendEmail(@RequestBody Meeting meeting) {
     	System.out.println("enter controller");
-    	userRepository.save(meeting);
-         sendmailformeeting(meeting,meeting.getEmail());
+    	userService.saveMeetingandsendEmail(meeting);
         // return "User Profile entry  deleted with number : ", HttpStatus.OK;
-         return new ResponseEntity<String>("Meeting details saved..",HttpStatus.OK);
+        return new ResponseEntity<String>("Meeting details saved..",HttpStatus.OK);
 	}
         // return new ResponseEntity<Meeting>("Your number is Verified",HttpStatus.OK);
     
     
-    private void sendmailformeeting(Meeting meeting, String email) {
-		// TODO Auto-generated method stub
-    	final String emailToRecipient = MAIL_RECEPTENT;
-    	final String emailFromRecipient = email;
-		final String emailSubject = "Meeting Schedule Notification ";
-
-		final String emailMessage1 = "<html> <body> <p>Dear Sir/Madam,</p><p>Meeting has been schedule by client as per below details"
-				+ "<br><br>"
-				//+ "<table border='1' width='300px' style='text-align:center;font-size:20px;'><tr> <td colspan='2'>"
-				+ "<tr><td>Name</td><td>" + meeting.getFullname() + "</td></tr><tr><td>Email</td><td>"
-				+ meeting.getEmail() + "</td></tr><tr><td>Message</td><td>" + meeting.getDateandtime() + "</td></tr><tr><td>Message</td><td>" 
-				+ meeting.getTitle()
-				+ "</td></tr> </body></html>";
-		
-		mailSenderObj.send(new MimeMessagePreparator() {
-
-			@Override
-			public void prepare(MimeMessage mimeMessage) throws Exception {
-
-				MimeMessageHelper mimeMsgHelperObj = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-
-				mimeMsgHelperObj.setTo(emailToRecipient);
-				mimeMsgHelperObj.setFrom("test@gmail.com");
-	
-				mimeMsgHelperObj.setText(emailMessage1, true);
-
-				mimeMsgHelperObj.setSubject(emailSubject);
-
-			}
-		});
-		
-	}
-    	
+        	
     @PostMapping("/sendotp")
 	public ResponseEntity<String> sendotp(@RequestParam("phone") String phone)
 	{
-	    VerificationResult result=phonesmsservice.startVerification(phone);
-	    if(result.isValid())
-	    {
-	    	return new ResponseEntity<>("Otp Sent..",HttpStatus.OK);
-	    }
+    	// sending otp and saving in db
+    	int otp=0;
+    	Phone otpReq = null;
+		if(phone != null){
+			Sms smsRequest = new Sms(phone, StringConstants.OTP_MESSAGE);
+			otp = smsSenderService.sendSms(smsRequest);
+		}
+		if(otp != 0){
+			otpReq = smsSenderService.save(phone, otp, new Date());
+		}
+		
+		if(otpReq != null && otp != 0) {
+			return new ResponseEntity<>("Otp sent..",HttpStatus.OK);
+		}
 		return new ResponseEntity<>("Otp sent..",HttpStatus.BAD_REQUEST);
 	}
 	
 	@PostMapping("/verifyotp")
 	public ResponseEntity<String> sendotp(@RequestParam("phone") String phone, @RequestParam("otp") String otp)
 	{
-	    VerificationResult result=phonesmsservice.checkverification(phone,otp);
-	    if(result.isValid())
+	    
+		int otpno = Integer.valueOf(otp);
+	    // we need to check db means u have to save date and time in db also then only u compare date and time
+	    if(phone!=null && otp != null)
 	    {
-	    	
-	    	return new ResponseEntity<>("Your number is Verified",HttpStatus.OK);
+	    	String message = smsSenderService.getOtpDetailsForSms(phone, otpno);
+		    if(message == StringConstants.SUCCESS) {
+		    	return new ResponseEntity<>("Your number is Verified",HttpStatus.OK);
+		    }else if(message == StringConstants.FAIL) {
+		    	return new ResponseEntity<>("Something wrong/ Otp incorrect",HttpStatus.BAD_REQUEST);
+		    }else {
+		    	return new ResponseEntity<>("Something wrong/ Otp incorrect",HttpStatus.BAD_REQUEST);
+		    }
+		    	
 	    }
-		return new ResponseEntity<>("Something wrong/ Otp incorrect",HttpStatus.BAD_REQUEST);
+	    return new ResponseEntity<>("Something wrong/ Otp incorrect",HttpStatus.BAD_REQUEST);
 	}
 	
 	
 	
     	
     	
-		
-	}
+}
 
 

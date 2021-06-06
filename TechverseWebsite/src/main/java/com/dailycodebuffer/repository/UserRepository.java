@@ -1,24 +1,18 @@
 package com.dailycodebuffer.repository;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
-import com.amazonaws.services.dynamodbv2.model.ScanResult;
-import com.dailycodebuffer.entity.Meeting;
-import com.dailycodebuffer.entity.User;
-
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Repository;
+
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
+import com.dailycodebuffer.entity.Meeting;
+import com.dailycodebuffer.entity.Phone;
+import com.dailycodebuffer.entity.User;
 
 @Repository
 public class UserRepository {
@@ -61,6 +55,19 @@ public class UserRepository {
     public Meeting save(Meeting meeting) {
         dynamoDBMapper.save(meeting);
         return meeting;
+    }
+    
+    public void save(Phone otp) {
+    	dynamoDBMapper.batchSave(otp);
+    }
+    
+    public Date getOTPDetialsForSms(String phoneNo, int otp) {
+    	// call sql query below example like this w eneed to write some sql and get date from db
+    	//@Query(value="SELECT CREATED_DATE FROM OTP_PHONE_DETAILS WHERE PHONE_NO =:phoneno AND OTP =:otp AND STATUS='NEW'",nativeQuery=true)
+    	
+    	return null;
+    	
+    	
     }
     
 }
